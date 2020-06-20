@@ -203,23 +203,18 @@ returns nil, no conversion takes place.")
 	   (let ((vars (org-babel--get-vars params))
 		 (in-racket (equal "racket" (cdr (assq :vars-are params)))))
 	     (when vars
-	       (concat
-		"(define-values ("
-		(mapconcat (lambda (var)
-			     (format "%s" (car var)))
-			   vars " ")
-		") (values "
-		(mapconcat (lambda (var)
-			     (let ((val (cdr var)))
-			       (if (and in-racket (stringp val))
-				   ;; Already a Racket expression.
-				   val
-				 ;; May not format as Racket, but most
-				 ;; other Babel language definitions
-				 ;; also do not seem to do much else.
-				 (format "%S" val))))
-			   vars " ")
-		"))")))))
+	       (mapconcat (lambda (var)
+			    (format "(define %s %s)"
+				    (car var)
+				    (let ((val (cdr var)))
+				      (if (and in-racket (stringp val))
+					  ;; Already a Racket expression.
+					  val
+					;; May not format as Racket, but most
+					;; other Babel language definitions
+					;; also do not seem to do much else.
+					(format "%S" val)))))
+			  vars "\n")))))
     )
   "Default code templates.
 A list of the form ((SYMBOL . TEMPLATE) ...). See
