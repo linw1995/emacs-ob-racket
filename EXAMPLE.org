@@ -307,3 +307,28 @@ It is possible to evaluate the code block content as an executable script, if th
 
 #+RESULTS:
 : "This is a script written in Racket."
+
+The body is in =racket=, and we are able to pass in related expressions for it.
+#+BEGIN_SRC racket :var x='pi :var y='(/ x pi) :command '(spaced "strings" :in-file)
+(+ x y)
+#+END_SRC
+
+#+RESULTS:
+: #lang racket
+: (write (let ()
+: (define x pi)
+: (define y (/ x pi))
+: (+ x y)))
+
+The body is in another lang, and we are able to pass in values for it.
+#+HEADER: :command '(spaced "strings" :in-file)
+#+HEADER: :define-var '(define-var-name " = " define-var-val "\n")
+#+BEGIN_SRC racket :var x=1 :var y=2 :lang anohter :results output
+z = x + y
+#+END_SRC
+
+#+RESULTS:
+: #lang anohter
+: x = 1
+: y = 2
+: z = x + y
