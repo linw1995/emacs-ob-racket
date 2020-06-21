@@ -200,21 +200,32 @@ returns nil, no conversion takes place.")
 	      `("(require " ,(cdr req) ")")))))
     (define-vars
       . ,(lambda (env params)
-	   (let ((vars (org-babel--get-vars params))
-		 (in-racket (equal "racket" (cdr (assq :vars-are params)))))
+	   (let ((vars (org-babel--get-vars params)))
 	     (when vars
 	       (mapconcat (lambda (var)
-			    (format "(define %s %s)"
-				    (car var)
-				    (let ((val (cdr var)))
-				      (if (and in-racket (stringp val))
-					  ;; Already a Racket expression.
-					  val
-					;; May not format as Racket, but most
-					;; other Babel language definitions
-					;; also do not seem to do much else.
-					(format "%S" val)))))
-			  vars "\n")))))
+			    (ob-racket-expand-template 'define-var
+						       (append ob-racket-custom-code-templates
+							       ob-racket-default-code-templates)
+						       (cons (cons :var-name (car var))
+							     (cons (cons :var-val (cdr var))
+								   params))))
+			  vars
+			  "")))))
+    (define-var . ("(define " define-var-name " " define-var-val ")\n"))
+    (define-var-name
+      . ,(lambda (env params)
+	   (symbol-name (cdr (assq :var-name params)))))
+    (define-var-val
+      . ,(lambda (env params)
+	   (let ((in-racket (equal "racket" (cdr (assq :vars-are params))))
+		 (val (cdr (assq :var-val params))))
+	     (if (and in-racket (stringp val))
+		 ;; Already a Racket expression.
+		 val
+	       ;; May not format as Racket, but most
+	       ;; other Babel language definitions
+	       ;; also do not seem to do much else.
+	       (format "%S" val)))))
     )
   "Default code templates.
 A list of the form ((SYMBOL . TEMPLATE) ...). See
